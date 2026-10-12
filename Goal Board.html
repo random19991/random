@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Goal Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Fraunces:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e16;--grid:#131a26;--card:#111826;--ink:#eef1f6;--mute:#8b96a8;--line:#222c3d;--gold:#d6b25e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="light"]{--bg:#eef1f5;--grid:#dde3ea;--card:#fff;--ink:#121a2b;--mute:#5f6b7e;--line:#dbe1ea;--gold:#9a7418}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background-color:var(--bg);background-image:radial-gradient(900px 420px at 12% -4%,color-mix(in srgb,var(--gold) 18%,transparent),transparent),linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:auto,32px 32px,32px 32px;background-attachment:fixed;color:var(--ink);font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;min-height:100%}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:2px solid #3a6ff7;outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 18px 80px}
+.hero{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:22px}
+.hero h1{margin:0;font-size:clamp(32px,6vw,54px);font-weight:800;letter-spacing:-.03em;line-height:1}
+.hero p{margin:6px 0 0;color:var(--mute)}
+.big{position:relative;width:118px;height:118px;flex:none}
+.big b{position:absolute;inset:0;display:grid;place-items:center;font-size:28px;font-weight:800}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;padding:10px 0;background:linear-gradient(var(--bg) 70%,transparent)}
+.search{flex:1 1 240px;display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:0 14px}
+.search input{flex:1;border:0;background:none;padding:12px 0;outline:0;min-width:0}
+.btn{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:11px 16px;font-weight:600}
+.btn:hover{border-color:var(--ink)}
+.btn.pri{background:var(--gold);color:#1a1405;border-color:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;align-items:start}
+.card{--c:#3a6ff7;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 9%,var(--card)),var(--card) 55%);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:22px;padding:14px 14px 12px;position:relative;box-shadow:0 22px 40px -28px rgba(0,0,0,.7)}
+.card.full{border-color:var(--gold);border-top-color:var(--gold)}
+.rk{font-size:11px;font-weight:800;color:var(--c);border:1.5px solid var(--c);border-radius:8px;padding:2px 6px;flex:none}
+.card.dragging,.item.dragging{opacity:.35}
+.card.mb{box-shadow:-9px 0 0 -2px var(--c)}
+.card.ma{box-shadow:9px 0 0 -2px var(--c)}
+.head{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.handle{cursor:grab;color:var(--mute);font-size:18px;line-height:1;padding:4px 2px;touch-action:none;user-select:none}
+.ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:color-mix(in srgb,var(--c) 18%,transparent);flex:none}
+.name{flex:1;min-width:0;font-weight:800;font-size:17px;line-height:1.15;letter-spacing:-.01em;overflow-wrap:anywhere}
+.ring{position:relative;width:38px;height:38px;flex:none}
+.ring i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-size:10px;font-weight:600;color:var(--mute)}
+.tools{display:flex;gap:2px;margin:-2px 0 6px 0;justify-content:flex-end}
+.tools button{font-size:12px;color:var(--mute);padding:3px 8px;border-radius:8px}
+.tools button:hover{background:var(--line);color:var(--ink)}
+.list{list-style:none;margin:0;padding:0 0 4px;min-height:8px;border-radius:10px}
+.list.lend{box-shadow:0 3px 0 0 var(--c)}
+.item{display:flex;align-items:center;gap:10px;padding:8px 6px;border-radius:10px;cursor:grab}
+.item:hover{background:color-mix(in srgb,var(--c) 9%,transparent)}
+.item.ib{box-shadow:0 -2px 0 0 var(--c)}
+.item.ia{box-shadow:0 2px 0 0 var(--c)}
+.chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--c);flex:none;position:relative}
+.done .chk{background:var(--c)}
+.done .chk::after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.t{flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.3}
+.done .t{color:var(--mute);text-decoration:line-through}
+.x{color:var(--mute);font-size:18px;line-height:1;padding:2px 6px;border-radius:8px;opacity:.55}
+.item:hover .x{opacity:1}.x:hover{color:#e11d48}
+.add{width:100%;border:1.5px dashed var(--line);background:none;border-radius:12px;padding:9px 12px;margin-top:6px;outline:0}
+.add:focus{border-color:var(--c);border-style:solid}
+.hero h1{font-family:'Fraunces',Georgia,serif;font-weight:600}
+.ttl{flex:1 1 240px}
+.hero p.stage{color:var(--gold);font-weight:600}
+.hud{display:flex;gap:10px;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column;gap:3px;min-width:104px;padding:12px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.stat b{font-family:'Fraunces',Georgia,serif;font-size:30px;line-height:1;color:var(--gold)}
+.stat span{font-size:12px;color:var(--mute)}
+.stat input{margin-top:4px;background:none;border:0;color:var(--mute);font-size:12px;width:112px;padding:0;color-scheme:dark light}
+.band{display:flex;gap:14px;align-items:center;flex-wrap:wrap;border:1px solid color-mix(in srgb,var(--gold) 45%,var(--line));border-radius:18px;padding:16px 20px;margin-bottom:6px;background:linear-gradient(100deg,color-mix(in srgb,var(--gold) 12%,var(--card)),var(--card))}
+.quote{flex:1 1 300px;margin:0;font-family:'Fraunces',Georgia,serif;font-size:clamp(17px,2.6vw,22px);line-height:1.35;cursor:pointer}
+.ci{background:var(--gold);color:#1a1405;font-weight:800;border-radius:14px;padding:12px 18px}
+.ci:disabled{background:transparent;color:var(--gold);border:1.5px solid var(--gold);cursor:default}
+.stat.ms{border-color:var(--gold);box-shadow:0 0 30px -8px var(--gold);cursor:pointer}
+.cel{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(5,8,14,.78);overflow:hidden}
+.cel .box{position:relative;text-align:center;padding:34px 40px;border:1.5px solid var(--gold);border-radius:28px;background:var(--card);max-width:92vw;box-shadow:0 0 80px -10px var(--gold)}
+.cel .n{font-family:'Fraunces',Georgia,serif;font-size:clamp(84px,22vw,150px);line-height:1;color:var(--gold);font-weight:600}
+.cel h3{margin:6px 0 4px;font-size:22px}.cel p{margin:0 0 18px;color:var(--mute)}
+.cf{position:absolute;top:-16px;width:9px;height:15px;border-radius:2px}
+@media (prefers-reduced-motion:no-preference){.cf{animation:fall linear forwards}@keyframes fall{to{transform:translateY(112vh) rotate(720deg)}}.cel .box{animation:pop .5s cubic-bezier(.2,1.4,.4,1)}@keyframes pop{from{transform:scale(.6);opacity:0}}}
+.rs{font-size:12px;color:var(--mute);text-decoration:underline;text-align:left;padding:0;margin-top:2px}
+.empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:60px 0}
+dialog{border:1.5px solid var(--line);border-radius:20px;background:var(--card);color:var(--ink);padding:22px;width:min(380px,92vw)}
+dialog::backdrop{background:rgba(10,15,25,.55)}
+dialog h2{margin:0 0 14px;font-size:22px}
+dialog label{display:block;font-size:13px;color:var(--mute);margin:12px 0 5px}
+dialog input[type=text]{width:100%;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.sw button{width:30px;height:30px;border-radius:50%;border:3px solid var(--card);box-shadow:0 0 0 2px transparent}
+.sw button.on{box-shadow:0 0 0 2px var(--ink)}
+.row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:14px;display:flex;gap:14px;align-items:center;z-index:20;max-width:92vw}
+.toast button{font-weight:800;text-decoration:underline}
+.hint{color:var(--mute);font-size:13px;margin:-8px 0 16px}
+@media (prefers-reduced-motion:no-preference){.ring circle.v{transition:stroke-dashoffset .4s}}
+</style></head>
+<body><div class="wrap">
+<header class="hero">
+  <div class="big" id="big"></div>
+  <div class="ttl"><h1>Goal Board</h1><p id="sub"></p><p id="stage" class="stage"></p></div>
+  <div class="hud">
+    <div class="stat"><b id="streak">0</b><span>day streak</span></div>
+    <div class="stat"><b id="best">0</b><span>best streak</span></div>
+    <div class="stat"><b id="d80">80</b><span id="d80l">days left of 80</span><button class="rs" id="rs">Restart</button></div>
+    <label class="stat"><b id="cd">—</b><span>days to target</span><input type="date" id="tgt" aria-label="Target date"></label>
+  </div>
+</header>
+<div class="band"><blockquote class="quote" id="quote" title="Click for another"></blockquote><button class="ci" id="ci"></button></div>
+<div class="bar">
+  <label class="search"><span aria-hidden="true">🔎</span><input id="q" type="search" placeholder="Search goals or boxes" aria-label="Search goals or boxes"></label>
+  <button class="btn pri" id="newBox">+ New box</button>
+  <button class="btn" id="theme" aria-label="Toggle theme">◐ Theme</button>
+  <button class="btn" id="reset">Reset</button>
+</div>
+<p class="hint">Rank your priorities: drag boxes by ⠿ (P1 is your top priority). Drag goals to reorder or move them between boxes. Double-click a name to rename.</p>
+<main class="grid" id="grid"></main>
+</div>
+<dialog id="dlg">
+  <h2>New box</h2>
+  <label for="dn">Name</label><input type="text" id="dn" maxlength="40" placeholder="e.g. Interview prep">
+  <label for="de">Icon (emoji)</label><input type="text" id="de" maxlength="4" value="⭐">
+  <label>Colour</label><div class="sw" id="sw"></div>
+  <div class="row"><button class="btn" id="dc">Cancel</button><button class="btn pri" id="ds">Add box</button></div>
+</dialog>
+<div id="tw"></div>
+<script>
+const KEY='goalboard.v1',COL=['#ef476f','#3a6ff7','#06a77d','#f59e0b','#8b5cf6','#0ea5a4','#f97316','#64748b'];
+const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const mk=(name,icon,color,items)=>({id:uid(),name,icon,color,open:true,items:items.map(t=>({id:uid(),t,done:false}))});
+const seed=()=>[
+ mk('Health & Appearance','💪','#ef476f',['Fit body','Visible abs','Acne-free, tan-free skin','Endurance for 5 rounds of continuous running']),
+ mk('Academics','🎓','#3a6ff7',['8.45 CGPA','CS fundamentals (OOP, DBMS, OS, Networks)']),
+ mk('Programming & DSA','🐍','#06a77d',['Proficient in Python','LeetCode: 300 problems','LeetCode contest rating']),
+ mk('Databases','🗄️','#f59e0b',['SQL']),
+ mk('Data Analysis & Visualisation','📊','#8b5cf6',['NumPy & Pandas','Matplotlib & Seaborn','Excel','Tableau']),
+ mk('Maths & Statistics','∑','#e11d8f',['Statistics','Probability','Linear Algebra','Calculus']),
+ mk('Machine Learning & AI','🧠','#3a6ff7',['Machine Learning','Deep Learning','GenAI','AI Agents']),
+ mk('MLOps & DevOps','🚢','#0ea5a4',['MLOps','Docker','Kubernetes']),
+ mk('Developer Tools','🛠️','#f97316',['Git & GitHub','Postman']),
+ mk('Projects & Wins','🏆','#d4a017',['2-3 end-to-end projects','At least 1 hackathon win']),
+ mk('Career Branding','🌐','#64748b',['Soft skills','LinkedIn profile','One-page resume'])];
+let S=(()=>{try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}return seed()})();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const ring=(p,size,w,color)=>{const r=size/2-w,c=2*Math.PI*r;return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${w}"/><circle class="v" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p)}"/></svg>`};
+function render(){
+  const q=$('#q').value.trim().toLowerCase();let tot=0,dn=0;
+  S.forEach(c=>c.items.forEach(i=>{tot++;if(i.done)dn++}));
+  const p=tot?dn/tot:0;
+  $('#big').innerHTML=ring(p,118,10,'#d6a93f')+`<b>${Math.round(p*100)}%</b>`;
+  $('#sub').textContent=`${dn} of ${tot} goals done across ${S.length} boxes`;hud();
+  const html=S.map((c,idx)=>{
+    const hit=c.name.toLowerCase().includes(q);
+    const items=c.items.filter(i=>!q||hit||i.t.toLowerCase().includes(q));
+    if(q&&!items.length)return'';
+    const d=c.items.filter(i=>i.done).length,cp=c.items.length?d/c.items.length:0;
+    return `<section class="card${cp===1&&c.items.length?' full':''}" data-id="${c.id}" style="--c:${c.color}">
+ <div class="head"><span class="handle" title="Drag to reorder">⠿</span><span class="rk">P${idx+1}</span><span class="ico">${esc(c.icon)}</span><div class="name" data-a="ren">${esc(c.name)}</div>
+ <div class="ring">${ring(cp,38,4,c.color)}<i>${d}/${c.items.length}</i></div></div>
+ <div class="tools"><button data-a="pin">Move to top</button><button data-a="fold">${c.open?'Collapse':'Expand'}</button><button data-a="delc">Delete box</button></div>
+ ${c.open?`<ul class="list">${items.map(i=>`<li class="item ${i.done?'done':''}" draggable="true" data-id="${i.id}"><button class="chk" data-a="tog" aria-label="Toggle ${esc(i.t)}"></button><span class="t">${esc(i.t)}</span><button class="x" data-a="deli" aria-label="Remove">×</button></li>`).join('')}</ul>
+ <input class="add" data-add="${c.id}" placeholder="+ Add a goal" aria-label="Add a goal to ${esc(c.name)}">`:''}
+ </section>`}).join('');
+  $('#grid').innerHTML=html||`<div class="empty">${q?'No goals match your search.':'No boxes yet. Use “+ New box” to start.'}</div>`;
+}
+function toast(msg,undo){const snap=JSON.stringify(S);$('#tw').innerHTML=`<div class="toast"><span>${esc(msg)}</span><button>Undo</button></div>`;
+  $('#tw button').onclick=()=>{S=JSON.parse(snap);save();render();$('#tw').innerHTML=''};
+  clearTimeout(toast.t);toast.t=setTimeout(()=>$('#tw').innerHTML='',6000)}
+const act=(msg,fn)=>{const snap=JSON.stringify(S);fn();save();render();
+  $('#tw').innerHTML=`<div class="toast"><span>${esc(msg)}</span><button>Undo</button></div>`;
+  $('#tw button').onclick=()=>{S=JSON.parse(snap);save();render();$('#tw').innerHTML=''};
+  clearTimeout(toast.t);toast.t=setTimeout(()=>$('#tw').innerHTML='',6000)};
+const grid=$('#grid');
+grid.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;
+  const card=b.closest('.card'),c=S.find(x=>x.id===card.dataset.id),it=b.closest('.item');
+  const a=b.dataset.a;
+  if(a==='tog'){const i=c.items.find(x=>x.id===it.dataset.id);i.done=!i.done;save();render()}
+  else if(a==='deli'){act('Goal removed',()=>c.items=c.items.filter(x=>x.id!==it.dataset.id))}
+  else if(a==='delc'){act(`Box “${c.name}” deleted`,()=>S=S.filter(x=>x!==c))}
+  else if(a==='pin'){S=[c,...S.filter(x=>x!==c)];save();render();scrollTo({top:0,behavior:'smooth'})}
+  else if(a==='fold'){c.open=!c.open;save();render()}
+});
+grid.addEventListener('dblclick',e=>{
+  const n=e.target.closest('[data-a="ren"]');if(!n)return;
+  const c=S.find(x=>x.id===n.closest('.card').dataset.id);
+  n.contentEditable='true';n.focus();getSelection().selectAllChildren(n);
+  const done=()=>{n.contentEditable='false';const v=n.textContent.trim();if(v)c.name=v;save();render()};
+  n.onblur=done;n.onkeydown=k=>{if(k.key==='Enter'){k.preventDefault();n.blur()}};
+});
+grid.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||!e.target.dataset.add)return;
+  const v=e.target.value.trim(),id=e.target.dataset.add;if(!v)return;
+  S.find(x=>x.id===id).items.push({id:uid(),t:v,done:false});save();render();
+  const n=document.querySelector(`[data-add="${id}"]`);n&&n.focus();
+});
+// drag and drop
+let drag=null;
+const clear=()=>document.querySelectorAll('.mb,.ma,.ib,.ia,.lend,.dragging').forEach(n=>n.classList.remove('mb','ma','ib','ia','lend','dragging'));
+const lock=()=>document.querySelectorAll('.card[draggable]').forEach(c=>c.removeAttribute('draggable'));
+grid.addEventListener('pointerdown',e=>{const h=e.target.closest('.handle');if(h)h.closest('.card').draggable=true});
+document.addEventListener('pointerup',lock);
+grid.addEventListener('dragstart',e=>{
+  const it=e.target.closest('.item'),card=e.target.closest('.card');
+  if(it)drag={t:'i',cid:card.dataset.id,iid:it.dataset.id};
+  else if(card&&e.target===card)drag={t:'c',cid:card.dataset.id};
+  else return;
+  e.dataTransfer.setData('text/plain','x');e.dataTransfer.effectAllowed='move';
+  const el=it||card;setTimeout(()=>el.classList.add('dragging'),0);
+});
+grid.addEventListener('dragover',e=>{
+  if(!drag)return;e.preventDefault();
+  document.querySelectorAll('.mb,.ma,.ib,.ia,.lend').forEach(n=>n.classList.remove('mb','ma','ib','ia','lend'));
+  const card=e.target.closest('.card');if(!card)return;
+  if(drag.t==='c'){if(card.dataset.id===drag.cid)return;const r=card.getBoundingClientRect();card.classList.add(e.clientX<r.left+r.width/2?'mb':'ma')}
+  else{const it=e.target.closest('.item');
+    if(it){if(it.dataset.id!==drag.iid){const r=it.getBoundingClientRect();it.classList.add(e.clientY<r.top+r.height/2?'ib':'ia')}}
+    else{const l=card.querySelector('.list');l&&l.classList.add('lend')}}
+});
+grid.addEventListener('drop',e=>{
+  if(!drag)return;e.preventDefault();
+  const card=e.target.closest('.card'),d=drag;
+  if(card){
+    if(d.t==='c'&&card.dataset.id!==d.cid){
+      const r=card.getBoundingClientRect(),after=e.clientX>=r.left+r.width/2;
+      const m=S.splice(S.findIndex(c=>c.id===d.cid),1)[0];
+      const to=S.findIndex(c=>c.id===card.dataset.id);S.splice(after?to+1:to,0,m);
+    }else if(d.t==='i'){
+      const src=S.find(c=>c.id===d.cid),dst=S.find(c=>c.id===card.dataset.id);
+      const it=e.target.closest('.item');
+      if(!(it&&it.dataset.id===d.iid)){
+        const m=src.items.splice(src.items.findIndex(i=>i.id===d.iid),1)[0];
+        let to=dst.items.length;
+        if(it){to=dst.items.findIndex(i=>i.id===it.dataset.id);const r=it.getBoundingClientRect();if(e.clientY>=r.top+r.height/2)to++}
+        dst.items.splice(to,0,m);
+      }
+    }
+  }
+  drag=null;clear();lock();save();render();
+});
+grid.addEventListener('dragend',()=>{drag=null;clear();lock()});
+// search, theme, reset
+$('#q').addEventListener('input',render);
+$('#theme').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='light'?'dark':'light'};
+$('#reset').onclick=()=>act('Board reset to the starter list',()=>S=seed());
+// new box dialog
+let pick=COL[1];
+const paintSw=()=>$('#sw').innerHTML=COL.map(c=>`<button style="background:${c}" class="${c===pick?'on':''}" data-c="${c}" aria-label="Colour ${c}"></button>`).join('');
+$('#sw').onclick=e=>{const b=e.target.closest('[data-c]');if(b){pick=b.dataset.c;paintSw()}};
+$('#newBox').onclick=()=>{$('#dn').value='';paintSw();$('#dlg').showModal();$('#dn').focus()};
+$('#dc').onclick=()=>$('#dlg').close();
+const addBox=()=>{const n=$('#dn').value.trim();if(!n){$('#dn').focus();return}
+  S.unshift({id:uid(),name:n,icon:$('#de').value.trim()||'⭐',color:pick,open:true,items:[]});
+  save();render();$('#dlg').close();scrollTo({top:0,behavior:'smooth'})};
+const QS=['Discipline is choosing what you want most over what you want now.','Show up on the days you do not feel like it. Those days build you.','Small reps, repeated daily, beat big bursts once a month.','You do not need more motivation. You need the next small action.','Your future self is watching what you do today.','Consistency is quiet. Results are loud.','One solved problem, one clean commit, one honest workout.','Be the person who finishes what the plan says.','Do not negotiate with the alarm. Get up and begin.','Progress is the only scoreboard that matters.','Every checked box is a promise kept to yourself.','Hard now, easy later. Easy now, hard later.',"The only thing standing between you and your goal is the story you keep telling yourself as to why you can't achieve it.",'Do it or not. Time passes.','Life is like a box of chocolates. You never know what you are gonna get.','With great power comes great responsibility.','You really have to discipline yourself to do the work. You have to just do the work. There is no other way.'];
+let qi=Math.floor(Math.random()*QS.length);
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const dayN=s=>Math.round(new Date(s+'T00:00:00')/864e5);
+let H=(()=>{try{return JSON.parse(localStorage.getItem('goalboard.hud'))||{}}catch(e){return{}}})();
+const saveH=()=>{try{localStorage.setItem('goalboard.hud',JSON.stringify(H))}catch(e){}};
+function hud(){
+  let tot=0,dn=0;S.forEach(c=>c.items.forEach(i=>{tot++;if(i.done)dn++}));const p=tot?dn/tot:0;
+  $('#stage').textContent=p>=1?'Board complete. Set a harder one.':p>=.75?'Final stretch. Finish strong.':p>=.5?'Past halfway. The momentum is yours.':p>=.25?'Building momentum. Protect the streak.':'Foundation phase. Start with one box.';
+  $('#quote').textContent='“'+QS[qi]+'”';
+  const t=today(),live=H.last&&dayN(t)-dayN(H.last)<=1?(H.streak||0):0;
+  $('#streak').textContent=live;$('#best').textContent=H.best||0;
+  const ms=live>0&&live%10===0,sc=$('#streak').parentElement;sc.classList.toggle('ms',ms);
+  $('#streak').nextElementSibling.textContent=ms?'🏆 '+live+'-day milestone':live>0?'day streak, '+(10-live%10)+' to 🏆':'day streak';
+  const did=H.last===t,b=$('#ci');b.textContent=did?'Checked in today ✓':'Check in: I did the work today';b.disabled=did;
+  $('#cd').textContent=H.target?Math.max(0,dayN(H.target)-dayN(t)):'—';$('#tgt').value=H.target||'';
+  if(!H.start){H.start=t;saveH()}
+  const used=dayN(t)-dayN(H.start),left=Math.max(0,80-used);
+  $('#d80').textContent=left;$('#d80l').textContent=left?'days left of 80 (day '+(used+1)+')':'80 days complete 🎉';
+}
+$('#ci').onclick=()=>{const t=today();if(H.last===t)return;H.streak=(H.last&&dayN(t)-dayN(H.last)===1)?(H.streak||0)+1:1;H.last=t;H.best=Math.max(H.best||0,H.streak);saveH();hud();if(H.streak%10===0)celebrate(H.streak)};
+const nextQ=()=>{qi=(qi+1+Math.floor(Math.random()*(QS.length-1)))%QS.length;hud()};
+$('#quote').onclick=nextQ;setInterval(nextQ,30000);
+let rsT;$('#rs').onclick=e=>{const b=e.target;if(b.dataset.s){H.start=today();saveH();delete b.dataset.s;b.textContent='Restart';hud()}else{b.dataset.s=1;b.textContent='Tap again to restart';clearTimeout(rsT);rsT=setTimeout(()=>{delete b.dataset.s;b.textContent='Restart'},3000)}};
+$('#streak').parentElement.onclick=()=>{const n=+$('#streak').textContent;if(n>0&&n%10===0)celebrate(n)};
+function celebrate(n){
+  const T={1:'Ten days. The habit is forming.',2:'Twenty days. You are not the same person.',3:'Thirty days. This is who you are now.'};
+  const el=document.createElement('div');el.className='cel';
+  const cols=['#d6b25e','#ef476f','#3a6ff7','#06a77d','#f59e0b','#8b5cf6'];
+  let cf='';for(let i=0;i<70;i++)cf+=`<i class="cf" style="left:${Math.random()*100}%;background:${cols[i%6]};animation-duration:${2.4+Math.random()*2.2}s;animation-delay:${Math.random()*.9}s"></i>`;
+  el.innerHTML=cf+`<div class="box" role="dialog" aria-label="Streak milestone"><div style="font-size:40px">🏆</div><div class="n">${n}</div><h3>day streak</h3><p>${T[n/10]||n+' days. Unstoppable.'}</p><button class="btn pri">Keep going</button></div>`;
+  el.querySelector('button').onclick=()=>el.remove();document.body.appendChild(el);setTimeout(()=>el.remove(),12000);
+}
+$('#tgt').onchange=e=>{H.target=e.target.value;saveH();hud()};
+$('#ds').onclick=addBox;$('#dn').addEventListener('keydown',e=>{if(e.key==='Enter')addBox()});
+render();
+</script></body></html>
